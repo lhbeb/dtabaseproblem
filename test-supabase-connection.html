@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test with current credentials
+        const supabaseUrl = 'https://lnsjsgwlbiykrdqywmml.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxuc2pzZ3dsYml5a3JkcXl3bW1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwMDMxOTcsImV4cCI6MjA3MTU3OTE5N30.CdoJ7-yxj5sKP8FuM88PX9KPwudOLauT7SY1ElqwUwE';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            results.innerHTML += '<p>🔍 Testing Supabase connection...</p>';
+            
+            try {
+                // Test 1: Basic connection
+                const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+                if (bucketError) {
+                    results.innerHTML += `<p>❌ Storage test failed: ${bucketError.message}</p>`;
+                } else {
+                    results.innerHTML += `<p>✅ Storage access successful, found ${buckets.length} buckets</p>`;
+                }
+                
+                // Test 2: Table access
+                const { data, error } = await supabase
+                    .from('job_applications')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    results.innerHTML += `<p>❌ Table access failed: ${error.message}</p>`;
+                    results.innerHTML += `<p>Error details: ${JSON.stringify(error)}</p>`;
+                } else {
+                    results.innerHTML += `<p>✅ Table access successful, found ${data.length} records</p>`;
+                }
+                
+                // Test 3: Insert test
+                const { data: insertData, error: insertError } = await supabase
+                    .from('job_applications')
+                    .insert({
+                        first_name: 'Test',
+                        last_name: 'User',
+                        email: 'test-' + Date.now() + '@example.com',
+                        address: '123 Test St',
+                        city: 'Test City',
+                        state: 'Arizona',
+                        phone_number: '5551234567',
+                        ssn: '123456789'
+                    })
+                    .select()
+                    .single();
+                
+                if (insertError) {
+                    results.innerHTML += `<p>❌ Insert test failed: ${insertError.message}</p>`;
+                    results.innerHTML += `<p>Insert error details: ${JSON.stringify(insertError)}</p>`;
+                } else {
+                    results.innerHTML += `<p>✅ Insert test successful!</p>`;
+                    results.innerHTML += `<p>Inserted data: ${JSON.stringify(insertData)}</p>`;
+                    
+                    // Clean up test data
+                    await supabase
+                        .from('job_applications')
+                        .delete()
+                        .eq('id', insertData.id);
+                    results.innerHTML += `<p>🧹 Test data cleaned up</p>`;
+                }
+                
+            } catch (err) {
+                results.innerHTML += `<p>❌ Connection test failed: ${err.message}</p>`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
