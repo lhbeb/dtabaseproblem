@@ -17,10 +17,5 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       exclude: ['lucide-react'],
     },
-    define: {
-      // Make environment variables available to the client
-      __SUPABASE_URL__: JSON.stringify(env.VITE_SUPABASE_URL),
-      __SUPABASE_ANON_KEY__: JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
-    },
   };
 });
